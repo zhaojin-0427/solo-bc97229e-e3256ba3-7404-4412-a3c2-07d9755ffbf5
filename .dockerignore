@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.git/
+tests/
+data/
+.pytest_cache/
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+README.md

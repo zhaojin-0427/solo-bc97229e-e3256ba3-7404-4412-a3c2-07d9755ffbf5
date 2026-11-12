@@ -1,0 +1,35 @@
+services:
+  api:
+    build: .
+    image: archive-ocr-search:latest
+    container_name: archive-ocr-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - archive-data:/data
+    environment:
+      ARCHIVE_DATA_DIR: /data
+      ARCHIVE_DB_PATH: /data/archive.sqlite3
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import json,urllib.request; r=urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4); json.load(r)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # One-shot demo seeder: waits for the API to become healthy, uploads the
+  # sample documents (idempotent: skips documents that already exist) and exits.
+  seed:
+    image: archive-ocr-search:latest
+    command: ["python", "-I", "scripts/seed_demo.py"]
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      ARCHIVE_API_BASE: http://api:8000
+    volumes:
+      - archive-data:/data
+    profiles: ["demo"]
+
+volumes:
+  archive-data:
